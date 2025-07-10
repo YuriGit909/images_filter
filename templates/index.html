@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Editor de Imagens</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1>Editor de Imagens</h1>
+        <p>Envie ou cole a URL de uma imagem e escolha um filtro</p>
+    </header>
+
+    <main>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST" enctype="multipart/form-data" class="form-container">
+            <input type="text" name="url_imagem" id="urlInput" placeholder="Cole a URL da imagem aqui">
+            <span>ou</span>
+            <input type="file" name="arquivo" id="fileInput" accept="image/*">
+
+            <select name="filtro" required>
+                <option value="" disabled selected>Escolha um filtro</option>
+                {% for codigo, (nome, _) in filtros.items() %}
+                <option value="{{ codigo }}">{{ nome }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Aplicar Filtro</button>
+        </form>
+
+        <!-- PRÉ-VISUALIZAÇÃO -->
+        <div class="preview" id="previewContainer" style="display: none;">
+            <h3>Pré-visualização</h3>
+            <img id="previewImage" src="" alt="Pré-visualização da imagem">
+        </div>
+
+        {% if imagem_original and imagem_filtrada %}
+        <section class="resultado">
+            <div class="imagem-box">
+                <h2>Original</h2>
+                <img src="{{ url_for('static', filename=imagem_original) }}" alt="Imagem original">
+            </div>
+            <div class="imagem-box">
+                <h2>Com Filtro</h2>
+                <img src="{{ url_for('static', filename=imagem_filtrada) }}" alt="Imagem filtrada">
+            </div>
+        </section>
+        {% endif %}
+    </main>
+
+    <script>
+        const urlInput = document.getElementById("urlInput");
+        const fileInput = document.getElementById("fileInput");
+        const previewContainer = document.getElementById("previewContainer");
+        const previewImage = document.getElementById("previewImage");
+
+        // Visualizar imagem da URL
+        urlInput.addEventListener("input", () => {
+            const url = urlInput.value;
+            if (url.startsWith("http")) {
+                previewImage.src = url;
+                previewContainer.style.display = "block";
+            } else {
+                previewContainer.style.display = "none";
+            }
+        });
+
+        // Visualizar imagem do arquivo local
+        fileInput.addEventListener("change", () => {
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    previewImage.src = e.target.result;
+                    previewContainer.style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+
+</html>
